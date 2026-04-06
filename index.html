@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEMO RPG Arcano — Card RPG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="noise-overlay"></div>
+<div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+</div>
+
+<div class="game-container">
+
+    
+    <nav class="main-nav">
+        <div class="nav-brand">
+            <span class="nav-rune">⬡</span>
+            <h1 class="game-title">DEMO RPG<br><em>Arcano</em></h1>
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="navigate('deck-builder')">
+                <span class="nav-icon">🃏</span> Grimório
+            </button>
+            <button class="nav-btn" onclick="navigate('campaign-map')">
+                <span class="nav-icon">🗺️</span> Campanha
+            </button>
+        </div>
+        <div class="nav-meta">
+            <div class="meta-item">
+                <span class="meta-label">Nível</span>
+                <span class="meta-val" id="nav-level">1</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Deck</span>
+                <span class="meta-val" id="nav-deck">0/5</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- DECK BUILDER -->
+    <section id="deck-builder" class="screen active">
+        <div class="screen-header">
+            <h2 class="screen-title">Grimório do Aventureiro</h2>
+            <p class="screen-subtitle">Selecione até 5 cartas para compor seu baralho de batalha.</p>
+        </div>
+
+        <div class="deck-layout">
+            <div class="panel deck-panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">Seu Baralho</h3>
+                    <span class="badge" id="deck-count-badge">0 / 5</span>
+                </div>
+                <div id="player-deck-view" class="cards-grid empty-state" data-empty="Nenhuma carta selecionada."></div>
+                <button class="cta-btn full-width mt-2" onclick="saveDeck()">
+                    <span>✦</span> Selar o Baralho
+                </button>
+            </div>
+
+            <div class="panel available-panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">Cartas Disponíveis</h3>
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" onclick="filterCards('all', this)">Todas</button>
+                        <button class="filter-tab" onclick="filterCards('Mago', this)">Mago</button>
+                        <button class="filter-tab" onclick="filterCards('Guerreiro', this)">Guerreiro</button>
+                        <button class="filter-tab" onclick="filterCards('Arqueiro', this)">Arqueiro</button>
+                        <button class="filter-tab" onclick="filterCards('Druida', this)">Druida</button>
+                    </div>
+                </div>
+                <div id="available-cards" class="cards-grid"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CAMPAIGN MAP -->
+    <section id="campaign-map" class="screen">
+        <div class="screen-header">
+            <h2 class="screen-title">O Caminho das Trevas</h2>
+            <p class="screen-subtitle">Cada vitória revela novos horrores. Escolha seu próximo desafio.</p>
+        </div>
+        <div id="campaign-list" class="campaign-list"></div>
+    </section>
+
+    <!-- BATTLE ARENA -->
+    <section id="battle-arena" class="screen">
+        <div class="arena-header">
+            <button class="danger-btn" onclick="confirmFlee()">
+                ← Fugir
+            </button>
+            <h2 class="arena-title" id="battle-title">Batalha em Andamento</h2>
+            <div class="turn-indicator" id="turn-indicator">Seu Turno</div>
+        </div>
+
+        <div class="battle-field">
+            <div class="combatant-side player-side">
+                <div class="combatant-label">
+                    <span class="combatant-tag player-tag">Herói</span>
+                    <span class="combatant-name" id="player-name">—</span>
+                </div>
+                <div class="hp-bar-wrap">
+                    <div class="hp-bar-track">
+                        <div class="hp-bar player-hp-bar" id="player-hp-bar"></div>
+                        <div class="hp-text" id="player-hp-text">—</div>
+                    </div>
+                </div>
+                <div id="battle-player-card" class="battle-card-slot"></div>
+                <div class="status-effects" id="player-status"></div>
+            </div>
+
+            <div class="vs-divider">
+                <div class="vs-orb">VS</div>
+                <div class="vs-line"></div>
+            </div>
+
+            <div class="combatant-side enemy-side">
+                <div class="combatant-label">
+                    <span class="combatant-tag enemy-tag">Inimigo</span>
+                    <span class="combatant-name" id="enemy-name">—</span>
+                </div>
+                <div class="hp-bar-wrap">
+                    <div class="hp-bar-track">
+                        <div class="hp-bar enemy-hp-bar" id="enemy-hp-bar"></div>
+                        <div class="hp-text" id="enemy-hp-text">—</div>
+                    </div>
+                </div>
+                <div id="battle-enemy-card" class="battle-card-slot"></div>
+                <div class="status-effects" id="enemy-status"></div>
+            </div>
+        </div>
+
+        <div class="battle-controls-area">
+            <div class="action-group">
+                <button id="btn-attack" class="battle-btn atk-btn" onclick="executePlayerTurn('attack')">
+                    <span class="btn-icon">⚔️</span>
+                    <span class="btn-label">Atacar</span>
+                    <span class="btn-sub">Dano normal</span>
+                </button>
+                <button id="btn-skill" class="battle-btn skill-btn" onclick="executePlayerTurn('skill')">
+                    <span class="btn-icon">✨</span>
+                    <span class="btn-label">Habilidade</span>
+                    <span class="btn-sub" id="skill-name-btn">—</span>
+                </button>
+                <button id="btn-defend" class="battle-btn def-btn" onclick="executePlayerTurn('defend')">
+                    <span class="btn-icon">🛡️</span>
+                    <span class="btn-label">Defender</span>
+                    <span class="btn-sub">+50% defesa</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="battle-log">
+            <div class="log-header">
+                <span>📜</span> Registro de Combate
+            </div>
+            <div id="log-content" class="log-body"></div>
+        </div>
+    </section>
+
+</div>
+
+<!-- OVERLAY de resultado -->
+<div id="result-overlay" class="result-overlay hidden">
+    <div class="result-card">
+        <div class="result-icon" id="result-icon"></div>
+        <h2 class="result-title" id="result-title"></h2>
+        <p class="result-msg" id="result-msg"></p>
+        <div class="result-buttons">
+            <button class="cta-btn" id="result-btn" onclick="closeResult()">Continuar</button>
+        </div>
+    </div>
+</div>
+
+<!-- DECK SELECTOR para batalha -->
+<div id="deck-selector-overlay" class="result-overlay hidden">
+    <div class="result-card wide">
+        <h2 class="result-title">Escolha seu Campeão</h2>
+        <p class="result-msg">Selecione a carta que irá lutar nesta batalha.</p>
+        <div id="deck-selector-cards" class="cards-grid centered"></div>
+        <button class="danger-btn mt-2" onclick="closeDeckSelector()">← Cancelar</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
